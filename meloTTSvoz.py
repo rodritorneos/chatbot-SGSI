@@ -19,7 +19,7 @@ print("Voces disponibles:", speaker_ids)
 # --------------------------------------------------------
 # 💬 TEXTO DE PRUEBA
 # --------------------------------------------------------
-text = ("Hola, soy la voz femenina de tu chatbot SGSI. Qué gusto saludarte. Estoy aquí para ayudarte con todo lo relacionado a la seguridad de la información. Puedes preguntarme sobre políticas, normativas, buenas prácticas y más. Estoy disponible las 24 horas del día para asistirte. ¡Comencemos cuando quieras!")
+text = ("Hola, soy la voz femenina de tu chatbot SGSI. Qué gusto saludarte. Estoy aquí para ayudarte con todo lo relacionado a la seguridad de la información. Puedes preguntarme sobre políticas, normativas, buenas prácticas y más. Estoy disponible las 24 horas del día para asistirte. ¡Comencemos cuando quieras! ")
 output_path = "melo_out.wav"
 
 # --------------------------------------------------------

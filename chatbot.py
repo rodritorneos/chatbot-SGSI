@@ -161,39 +161,54 @@ def generate_question_for_topic(topic: str, advanced: bool = False) -> str:
 # EXPLICACIÓN BREVE
 # --------------------------
 def generate_brief_explanation(question_block: str, correct_letter: str, user_letter: str) -> str:
+    # Forzar siglas SGSI uniformes
+    question_block = re.sub(r'\bSGSIA?\b', 'SGSI', question_block, flags=re.IGNORECASE)
     prompt = (
-        "Explica en máximo 3 líneas por qué la opción correcta es correcta. "
-        "Si el usuario respondió mal, añade una frase aclaratoria breve.\n\n"
+        "Eres un experto en SGSI (Sistema de Gestión de Seguridad de la Información). "
+        "Explica en máximo 3 líneas por qué la opción correcta es correcta y la incorrecta es incorrecta. "
+        "Usa siempre las siglas SGSI uniformemente.\n\n"
         f"Pregunta:\n{question_block}\n\n"
         f"Opción correcta: {correct_letter}\n"
-        f"Respuesta del usuario: {user_letter}"
+        f"Respuesta del usuario: {user_letter}\n\n"
+        "No cambies la letra correcta, no inventes otra, y sé muy conciso."
     )
     explic = generar_respuesta(prompt, max_tokens=120, temperature=0.18, timeout=40)
+    explic = re.sub(r'\bSGSIA?\b', 'SGSI', explic, flags=re.IGNORECASE)  # normalizar siglas en la respuesta
     return explic.replace("*", "").strip()
 
 # --------------------------
-# INTRO TEXT
+# INTRO TEXT (ampliadas)
 # --------------------------
 INTRO_MAIN = (
-    "🤖 Bienvenido al Chatbot SGSI — Capacitación en Seguridad de la Información\n"
-    "Este asistente te ayudará a practicar conceptos clave de SGSI y normas ISO/IEC 27001, 27002 y 27005.\n"
-    "Usa chat libre para dudas, quizzes para practicar, un examen corto y casos prácticos.\n"
+    "🤖 Bienvenido al Asistente SGSI — Evaluación de Estándares ISO/IEC\n"
+    "Este chatbot te ayudará a fortalecer tus conocimientos en Seguridad de la Información y en los estándares ISO 27001, 27002 y 27005.\n"
+    "Podrás usarlo para resolver dudas, practicar con evaluaciones, realizar exámenes rápidos y responder casos prácticos reales.\n"
+    "👉 Elige en el menú la modalidad que prefieras según tu nivel o necesidad de práctica.\n"
 )
 INTRO_CHAT = (
-    "💬 Chat Libre — Haz preguntas abiertas sobre SGSI e ISO (máx 4 frases por respuesta). "
-    "Ideal para aclarar dudas rápidas.\n"
+    "💬 Chat Libre — Modo de conversación para preguntas abiertas sobre SGSI e ISO.\n"
+    "Puedes preguntar lo que quieras sobre políticas, controles, auditorías o gestión de riesgos. Recibirás respuestas breves y claras.\n"
+    "👉 Escribe tus dudas directamente o usa 'limpiar' para reiniciar el contexto y 'salir' para terminar.\n"
 )
 INTRO_QUIZ_BASIC = (
-    "📝 Quiz Básico — Preguntas de opción múltiple centradas en requisitos esenciales de ISO 27001.\n"
+    "📝 Evaluación Básica — Prueba tu conocimiento en los requisitos esenciales de la norma ISO/IEC 27001.\n"
+    "Recibirás preguntas de opción múltiple con tres alternativas posibles.\n"
+    "👉 Selecciona un tema del listado o escribe el tuyo, luego responde A, B o C según consideres correcto.\n"
 )
 INTRO_QUIZ_ADV = (
-    "⚙️ Quiz Avanzado — Preguntas más técnicas que combinan ISO 27001, 27002 y 27005.\n"
+    "⚙️ Evaluación Avanzada — Ejercita tus conocimientos técnicos combinando ISO/IEC 27001, 27002 y 27005.\n"
+    "Las preguntas son más específicas e integran controles, análisis de riesgos y medidas de seguridad.\n"
+    "👉 Elige un tema, responde con A/B/C y obtén retroalimentación inmediata sobre tu respuesta.\n"
 )
 INTRO_EXAM = (
-    "🏁 Examen Rápido — Simulación de prueba corta: 4 preguntas, 5 puntos cada una.\n"
+    "🏁 Examen Rápido — Simulación de evaluación corta con 8 preguntas, cada una vale 2.5 puntos (máximo 20).\n"
+    "Las preguntas se generan automáticamente sobre distintos temas de seguridad de la información.\n"
+    "👉 Responde con A, B o C. Al final, conocerás tu puntaje total.\n"
 )
 INTRO_CASE = (
-    "💼 Caso Práctico — Escenarios reales. Describe acciones (2-4 líneas) y recibe evaluación práctica.\n"
+    "💼 Caso Práctico — Ejercicios basados en situaciones reales dentro de un SGSI.\n"
+    "Se te presentará un escenario y deberás describir brevemente qué acciones tomarías.\n"
+    "👉 Escribe tu respuesta en 2-4 líneas o escribe 'salir' para terminar.\n"
 )
 
 # --------------------------
@@ -278,8 +293,8 @@ def modo_chat_libre():
 # =======================
 # Modo Quiz
 # =======================
-def modo_quiz(basico: bool = True):
-    print("\n=== 📝 QUIZ ===")
+def modo_estandares(basico: bool = True):
+    print("\n=== 📝 EVALUACIÓN DE ESTÁNDARES ===")
     print(INTRO_QUIZ_BASIC if basico else INTRO_QUIZ_ADV)
     temas = [
         "Requisitos ISO 27001", "Política de seguridad", "Controles de acceso",
@@ -350,10 +365,15 @@ def modo_examen_rapido():
         "Clasificación de la información (SGSI)",
         "Gestión de riesgos (ISO 27005)",
         "Política de seguridad",
-        "Auditoría interna"
+        "Auditoría interna",
+        "Evaluación de proveedores (ISO 27002)",
+        "Gestión de continuidad del negocio (ISO 27001)"
     ]
 
-    for i in range(1, 5):
+    TOTAL_PREGUNTAS = 8          # 🔹 ahora 8 preguntas
+    PUNTAJE_POR_PREGUNTA = 20 / TOTAL_PREGUNTAS  # 🔹 mantiene total de 20 puntos
+
+    for i in range(1, TOTAL_PREGUNTAS + 1):
         candidates = [t for t in pool if t not in used_q_texts] or pool
         tema = random.choice(candidates)
 
@@ -374,7 +394,7 @@ def modo_examen_rapido():
 
             textos = list(opts.values())
             textos_sin_duplicar = list(dict.fromkeys(textos))
-            for j, key in enumerate(["A","B","C"]):
+            for j, key in enumerate(["A", "B", "C"]):
                 if j < len(textos_sin_duplicar):
                     opts[key] = textos_sin_duplicar[j]
                 else:
@@ -399,24 +419,24 @@ def modo_examen_rapido():
             user = input("\n👤 Tu opción (A/B/C o 'salir'): ").strip().upper()
             if user.lower() == "salir":
                 print("\n🚪 Examen interrumpido por el usuario.")
-                print(f"\n🏆 Puntaje final: {puntaje}/20\n")
+                print(f"\n🏆 Puntaje final: {puntaje:.1f}/20\n")
                 return
-            if user not in ["A","B","C"]:
+            if user not in ["A", "B", "C"]:
                 print("❌ Opción no válida. Elige A, B o C.")
                 continue
             break
 
         if user == corr:
             print("\n✅ Correcto!")
-            puntaje += 5
+            puntaje += PUNTAJE_POR_PREGUNTA
         else:
-            print(f"\n❌ Incorrecto. La correcta era {corr}) {opts.get(corr,'')}")
+            print(f"\n❌ Incorrecto. La correcta era {corr}) {opts.get(corr, '')}")
 
         explic = generate_brief_explanation(raw, corr, user)
         print(f"\n📖 Explicación breve:\n{explic}\n")
         time.sleep(0.3)
 
-    print(f"\n🏆 Puntaje final: {puntaje}/20\n")
+    print(f"\n🏆 Puntaje final: {puntaje:.1f}/20\n")
 
 # ==========================
 # Modo Caso práctico
@@ -477,8 +497,8 @@ def main():
     while True:
         print("=== MENÚ PRINCIPAL ===")
         print("1) Chat libre")
-        print("2) Quiz básico (ISO 27001)")
-        print("3) Quiz avanzado (27001/27002/27005)")
+        print("2) Evaluación de Estándares (ISO 27001)")
+        print("3) Evaluación Avanzada de Estándares (27001/27002/27005)")
         print("4) Examen rápido")
         print("5) Caso práctico")
         print("6) Salir")
@@ -486,15 +506,15 @@ def main():
         if opcion == "1":
             modo_chat_libre()
         elif opcion == "2":
-            modo_quiz(basico=True)
+            modo_estandares(basico=True)
         elif opcion == "3":
-            modo_quiz(basico=False)
+            modo_estandares(basico=False)
         elif opcion == "4":
             modo_examen_rapido()
         elif opcion == "5":
             modo_caso_practico()
         elif opcion == "6":
-            print("👋 ¡Gracias por usar el Chatbot SGSI! ¡Éxitos en tu presentación!")
+            print("👋 ¡Gracias por usar el Asistente SGSI! ¡Éxitos en tu presentación!")
             break
         else:
             print("❌ Opción no válida. Intenta nuevamente.\n")
